@@ -38,7 +38,7 @@ Setting up the automation is simple:
 
 ## Screenshots
 
-![n8n Workflow](https://github.com/yourusername/messenger-automation-n8n/screenshots/n8n-workflow.png)
+![n8n Workflow](https://drive.google.com/uc?export=view&id=13IIitv05DAdkLMKD0hPh02DoLUATmP_s)
 *Visual representation of the Messenger Automation workflow in n8n.*
 
 ---
