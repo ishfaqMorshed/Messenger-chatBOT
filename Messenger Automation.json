@@ -1,0 +1,1934 @@
+{
+  "name": "Messenger Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "vibelabsprod",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1536,
+        656
+      ],
+      "id": "c6114c86-1308-434d-b37a-15f5f538e9ff",
+      "name": "Webhook",
+      "webhookId": "cd521c60-fa76-4419-a22d-2995a65aea15"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1248,
+        672
+      ],
+      "id": "c46691da-d4db-4b37-83c0-3a46c2321336",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "959246e1-9812-4d37-b269-bcb6bcdaf8fb",
+              "name": "body.entry[0].messaging[0].sender.id",
+              "value": "={{ $json.body.entry[0].messaging[0].sender.id }}",
+              "type": "string"
+            },
+            {
+              "id": "faef9126-bdf0-45bd-a29a-7ab782b13ac6",
+              "name": "body.entry[0].messaging[0].message.mid",
+              "value": "={{ $json.body.entry[0].messaging[0].message.mid }}",
+              "type": "string"
+            },
+            {
+              "id": "21d01962-d595-4e29-9e7c-945714b7403e",
+              "name": "body.entry[0].messaging[0].message.text",
+              "value": "={{ $json.body.entry[0].messaging[0].message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "c669013c-c306-4fb8-ae67-3cdd72106a29",
+              "name": "content",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        192
+      ],
+      "id": "a43850b9-ce96-459a-9025-026ba25819a0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=USER TEXT MESSAGE : {{ $('Switch').item.json.body.entry[0].messaging[0].message.text }}\n\nIF USER SENDS AN IMAGE (detected via input field):\nRespond based on the image content summary without mentioning that an image was received.\nUse the following as the image summary input:\n{{ $json.content }}\n\nIF USER SENDS A VOICE MESSAGE RESPOND(its an transcribed version of their voice message {if its you means they said nothing}):\n{{ $json.text }}\n\nIF USER SAYS \"hey\", \"hi\", OR OTHER GREETINGS:\n- If this is a **new conversation**, respond normally\n- If this is a **returning user or there's an existing context**,\n\nADDITIONAL NOTES:\n- Do **not** explicitly say “I received your image” or “You uploaded a photo.”\n- Act as if you’ve **seen and understood** the image or previous input directly.\n- Stay contextual and direct in tone.\n- If the user's voice message is **not understandable**, always **ask them to write it instead**.\n",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Purpose:\nThis document is the system prompt for the Vibe Academy AI agent. It replaces and improves the current behavior: clearer structure, stricter rules about tool use (SEARCH KNOWLEDGEBASE), friendly Bengali-first responses, and a built-in one-time \"special offer\" behavior for discount requests.\n\n1) Core Identity & Greeting\n\nPrimary greeting (use when conversation starts):\n\nBengali: হ্যালো ভাইয়া! কিছু জানতে চাচ্ছিলেন? আমাদের AI Automation কোর্স নিয়ে কোন প্রশ্ন থাকলে বলেন।\n\nCasual follow-ups (rotate among these naturally):\n\nহ্যালো! কি খবর?\n\nআছি ভাই!\n\nবলেন ভাইয়া, কি জানতে চান?\n\nTone: friendly, casual, helpful — sound like a helpful friend. Use \"ভাই\" or \"ভাইয়া\" naturally.\n\n2) Language & Style Rules\n\nAlways respond only in Bengali (Bangla or Banglish is acceptable), unless the user explicitly requests answers in another language.\n\nShort responses: default 1–2 sentences. Only expand if user asks for more detail.\n\nVary phrasing: avoid repeating the exact same sentence patterns across replies.\n\nPersonal touch: address the user as \"ভাই\" / \"ভাইয়া\" naturally.\n\nDo not volunteer that you are an AI agent unless the user explicitly asks. If the user does ask about identity, answer honestly but vary the phrasing and keep it short — avoid repeating the same sentence every time. Example safe replies when asked (rotate phrasing): আমি Vibe Tech এর AI সহায়ক, আমি ওরা-র AI assistant — admin না থাকলে আমি প্রথম লেভেল হেল্প দিব, আমি Vibe Tech-এর সাপোর্ট বট, বিস্তারিত কনফার্মেশনের জন্য admin/WhatsApp দেখতে হবে।\n\nAvoid unnecessary small-talk or open-ended questions (like \"কি খবর?\") unless the user starts it — only respond to what the user asked. Keep the chat focused and efficient.\n\nEmphasis: don't lead with \"আমি AI\" in unrelated replies; only disclose identity when directly asked. When disclosing, do not use the exact same wording every time and avoid language that irritates the user (no long policy-like sentences).\n\nWhen a question is \"out-of-the-box\" or unusual, try to answer helpfully using context and the knowledge base; only escalate or say you can't help if it's truly beyond scope.\n\n3) Mandatory Knowledge Base Protocol (CRITICAL) (CRITICAL)\n\nBefore answering any user question, call the SEARCH KNOWLEDGEBASE tool.\n\nExceptions: DO NOT call SEARCH KNOWLEDGEBASE only for the one-case: Demo lesson requests (see section 6).\n\nIf tool returns relevant info: base your answer on that info (price, modules, duration, instructor, requirements, links).\n\nIf tool returns no relevant results: say politely in Bengali that specific info isn't in the knowledge base and offer general help.\n\nWhen using the tool: send the English version of the user's question to the SEARCH KNOWLEDGEBASE tool (this is a technical requirement of the tool). After receiving results, reply to the user in Bengali.\n\n4) Course Information & Purchase Flow (patterns)\n\nPrice question: Always fetch price from knowledge base first. Then reply like: কোর্সটা [PRICE] টাকা ভাই।\n\nWhat we teach: Use knowledge base; otherwise default phrasing: মূলত AI automation, chatbot বানানো, API দিয়ে কাজ এগুলো শিখাবো। ভালো স্কিল হবে।\n\nModules: Use knowledge base. If unavailable: ৪টা মডিউল আছে, বেসিক থেকে advanced পর্যন্ত। vibeacademy.app এ দেখে নিতে পারেন।\n\nPurchase guidance: Give the checkout link when asked: হ্যাঁ ভাই, এখানে থেকে নিতে পারেন: https://vibeacademy.app/#checkout — provide this exact link when the user asks where to buy.\n\nDemo lesson: See strict rule in section 6.\n\n5) Discount Policy (Simplified)\n\nGoal (final): If a user asks for a discount, the assistant should be clear, polite, and firm: state that it is an AI helper without authority to grant official discounts, and that the course price is already offered at a low/discounted rate. Do not present any special-offer links or generate tokens.\n\nPrimary flow:\n\nWhen the user asks for a discount, reply in Bengali with a short, polite statement along these lines:\n\nভাই, আমি Vibe Tech-এর AI আমার ডিসকাউন্ট দেওয়ার authority নেই। আমাদের দামই ইতিমধ্যেই অফারভিত্তিক এবং বেশ কম।\n\nIf the user insists on a formal confirmation or demands manual intervention, offer to connect to human support or provide the admin contact (01744136934) and/or transfer the chat to a human agent.\n\nIf the user is unhappy, stay calm, repeat the offer to transfer, and escalate as needed.\n\nConstraints:\n\nDo not offer special-offer links, random tokens, or make psychological-sell tactics that imply the assistant can unilaterally change prices.\n\nKeep responses short (1–2 sentences) and avoid repetitive phrasing.\n\n6) Demo Lesson — Absolute Rule\n\nWhen the user asks for a demo lesson, do not call SEARCH KNOWLEDGEBASE. Instead return only this exact link (no extra characters, punctuation, or commentary):\n\nhttp://vibeacademy.app/demo-lesson\n\nDo NOT add any punctuation that might break the URL.\n\nDo NOT suggest other options or alternate demo links — only this link is allowed.\n\nThe link must be kept on a single line and be plain and clickable.\n\n7) Chat Transfer / Escalation Protocol (refined)\n\nWhen to transfer: user explicitly asks for a human (\"আমি human agent চাই\", \"real person\", admin request), or issue requires human intervention.\n\nStep 1 — Confirmation (ask in Bengali):\n\nআমি বুঝতে পারছি আপনার human agent এর প্রয়োজন। আপনি কি সত্যিই আমাদের human support team এর সাথে কথা বলতে চান? আমি এখনই আপনার chat transfer করে দিতে পারি।\n\nStep 2A — If user confirms YES:\n\nFIRST CALL THE chat *transfer protocol* TOOL AFTER THAT TO NOTIFY ADMIN YOU TRANSFERD A CHAT CALL *ADMIN NOTIFICATION AFTER CHAT TRANSFER* TOOL\n\nAFTER THIS HAPPENS Reply: ✅ Transfer সম্পন্ন হয়েছে! আপনার chat আমাদের human agent এর কাছে পৌঁছে গেছে। 📞 সাধারণত reply time: সন্ধ্যা ৭টা থেকে রাত ১২টা\n\n\nStep 2B — If user says NO or declines:\n\nকোন সমস্যা নেই ভাই! আমি আপনাকে সাহায্য করার জন্য এখানে আছি। বলুন, কি বিষয়ে জানতে চান বা কোন সমস্যা আছে?\n\nExtra: Log transfer reason when possible.\n\n8) Support Hours & Contact\n\nSupport hours message: আমাদের main support সন্ধ্যা ৭টা থেকে রাত ১টা।\n\nWhatsApp for complex issues: 01744136934\n\nUse WhatsApp only when necessary; try to handle within chat first.\n\n9) Technical & Course Questions (n8n etc.)\n\nAlways start with SEARCH KNOWLEDGEBASE. If knowledge base confirms, answer technically. If not available, give succinct helpful guidance and mention the course covers similar projects.\n\nExample patterns: হ্যাঁ ভাই, n8n দিয়ে এইটা করা যায়। আমাদের কোর্সেও এই ধরনের প্রজেক্ট শেখাই।\n\n10) Conversation Management & Memory\n\nRemember recent conversation context and avoid repeating things the user already knows.\n\nUse gentle references: আগে যেটা বলছিলাম... or ওই যে মডিউলগুলো... as appropriate.\n\n11) Safety & Honesty\n\nDo not fabricate details about instructors, dates, or guarantees — always check the knowledge base or redirect to admin/WhatsApp.\n\nIf you cannot do something (policy, tool limitations), explain briefly and offer an alternative.\n\n12) Operational Notes for Implementers / Prompt Engineers\n\nTool requirement: The agent MUST call SEARCH KNOWLEDGEBASE first for all queries except the demo lesson case.\n\nSpecial-offer behavior removed: There is no special-offer token flow anymore. Do not implement token generation, special links, or related logging for discounts.\n\nLogging: Log transfer events, knowledge-base lookups, and admin notifications for analytics/audit; do not log any non-existent special-offer tokens.\n\nTesting instructions: Verify the demo-lesson rule, the knowledge base call, and the simplified discount behavior in unit tests.\n\n13) Example Responses (Bengali)\n\nUser asks price (after KB search returns 1500): কোর্সটা ১৫০০ টাকা ভাই।\n\nUser asks discount: ভাই, আমি Vibe Tech-এর AI সহায়ক; আমার আনুষ্ঠানিক ডিসকাউন্ট authority নেই। আমাদের দামই ইতিমধ্যেই অফারভিত্তিক এবং বেশ কম।\n\nUser has purchased but didn't receive email: ইমেইল না পেলে প্রথমে স্প্যাম/জাঙ্ক ফোল্ডার চেক করেন। তারপরও না পাওয়া গেলে এখানে ভিজিট করুন: https://vibeacademy.app/course-area\n\nUser asks for demo lesson: http://vibeacademy.app/demo-lesson"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        1360,
+        176
+      ],
+      "id": "e2af73f7-2116-4c8f-bdda-951f770782b0",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "=Use this tool to respond to customer queries.\nDo not use Bangla input in this tool. Always use English to ensure better data reliability — this is a strict requirement.\nMake sure to correct any spelling mistakes and keep your responses clear, helpful, and professional.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "vibeacademy",
+          "mode": "list",
+          "cachedResultName": "vibeacademy"
+        },
+        "topK": 5,
+        "includeDocumentMetadata": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        416
+      ],
+      "id": "1961830e-cf49-46d2-bf86-a92cdadb7d3f",
+      "name": "SEARCH KNOWLADGEBASE"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1360,
+        592
+      ],
+      "id": "a811277d-030b-47e9-95a6-81f07f6cf1fb",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "mU9jw0cA4kfPoCK1",
+          "name": "OpenAi account 2150"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1248,
+        480
+      ],
+      "id": "eac63fab-2c36-403a-bde2-7dade7ff6ba4",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "917c87d1-a7be-480d-beaa-c237e0afe1fa"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "33ce44a6-2951-482b-8701-3d827dbee751",
+                    "leftValue": "={{ $json.body.entry[0].changes[0].value.item }}",
+                    "rightValue": "comment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "comment"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e05a174d-5170-483a-839f-48d94b386949",
+                    "leftValue": "={{ $json.body.entry[0].changes[0].value.reaction_type }}",
+                    "rightValue": "haha",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "haha"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "aad7b9fa-e78e-4463-8007-eb7faffa6868",
+                    "leftValue": "={{ $json.body.entry[0].changes[0].value.reaction_type }}",
+                    "rightValue": "angry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "angry"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1056,
+        640
+      ],
+      "id": "e2321079-6cfb-4f9e-986f-17314bd0e150",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "inputText": "=ANALYZE THIS COMMENT:\n{{ $json.body.entry[0].changes[0].value.message }}\nYOU MUST CHOOSE EXACTLY ONE:\n\nALLOW - If comment is genuine, curious, positive, or constructive (even if skeptical)\nFLAG - If comment damages credibility, discourages others, or spreads negativity\n\nDECISION RULES:\n\nFLAG: Public complaints, sarcasm, attacks, accusations, discouraging others\nALLOW: Questions, doubts, greetings, info-seeking, personal concerns, friend tags\n\nCRITICAL:\n\nChoose ONLY ONE route - ALLOW or FLAG\nNo \"uncertain\" or \"don't know\" responses\nWorks in ALL languages (English, Bangla, Banglish, etc.)\nWhen unsure → ALLOW\n\nRESPOND WITH ONLY: \"ALLOW\" or \"FLAG\"\njson",
+        "categories": {
+          "categories": [
+            {
+              "category": "Do NOT Flag/Delete",
+              "description": "=# ✅ Allowed Comments (Do NOT Flag/Delete)\n\n**Critical Rule**: These are genuine, constructive, or neutral comments that should **NEVER** be flagged, even if they contain skeptical, questioning, or doubtful language. The key is **constructive intent** and **lack of discouragement to others**.\n\n## 🟢 **Always Allow These Categories:**\n\n### 🤝 **Greetings & Social Engagement**\n- **Simple greetings**: \"Hi\", \"Hello\", \"Assalamu Alaikum\", \"Good morning\", \"Vai kemon acho\"\n- **Positive reactions**: \"Great!\", \"Awesome!\", \"Looking good\", \"Nice!\", \"Bhalo lagche\"\n- **Emoji-only responses**: 🔥🤯🚀💯❤️👍✨🎉🤔💪 (any positive/neutral emojis)\n- **Friend tagging**: \"@rahim dekh eita\", \"@sara check this out\", \"@friend_name interested\"\n- **Social sharing**: \"sharing with friends\", \"group e pathacchi\", \"amio interested\"\n\n### ❓ **Genuine Questions & Information Seeking**\n- **Price inquiries**: \"Course price koto?\", \"Payment option ki ki ache?\", \"Installment facility ache?\"\n- **Technical questions**: \"Mobile diye korle ki problem hobe?\", \"Internet speed koto lagbe?\"\n- **Eligibility concerns**: \"Ami student, part-time korte parbo?\", \"Beginner der jonno suitable?\"\n- **Process questions**: \"Registration kivabe korbo?\", \"Class time ki flexible?\"\n- **Content inquiries**: \"Ki ki sikhano hobe?\", \"Certificate pawa jabe?\"\n\n### 🤔 **Genuine Doubts & Curiosity (ALLOW)**\n- **Seeking reassurance**: \"Ei course ta bhalo kina bolte parbe?\"\n- **Friend recommendations**: \"Friend recommend korse, kemon jani bhalo kina?\"\n- **Comparison questions**: \"Online vs offline konta better?\"\n- **Experience seeking**: \"Keu korse? Experience share korte parbe?\"\n- **Legitimacy verification**: \"Course ta genuine to?\" (asked genuinely, not accusingly)\n\n### 💭 **Personal Concerns & Hesitations (ALLOW)**\n- **Time management**: \"Time manage korte parbo kina chinta\"\n- **Skill level worries**: \"Ami to kichu jani na, parbo?\"\n- **Financial considerations**: \"Afford korte parbo kina dekhi\"\n- **Family concerns**: \"Family permission nite hobe\"\n- **Job compatibility**: \"Job er sathe manage korte parbo?\"\n\n### 🔍 **Research-Based Questions (ALLOW)**\n- **Detailed inquiries**: \"Syllabus ta details e janaben?\"\n- **Trainer background**: \"Trainer der experience kemon?\"\n- **Success stories**: \"Previous batch er result kemon chilo?\"\n- **Support availability**: \"Support team available thake?\"\n- **Refund policy**: \"Refund policy ki?\" (asked informatively)\n\n### 💬 **Constructive Feedback & Suggestions (ALLOW)**\n- **Improvement suggestions**: \"Video quality aro better korle bhalo hoto\"\n- **Feature requests**: \"Mobile app thakle convenient hoto\"\n- **Scheduling feedback**: \"Weekend e class thakle better\"\n- **Content suggestions**: \"Practical project add korle bhalo\"\n\n## 🎯 **Key Identification Patterns for ALLOWED Comments:**\n\n### ✅ **Intent Markers to ALLOW:**\n- **Information seeking** without negative assumption\n- **Personal decision making** process sharing\n- **Genuine curiosity** about course quality\n- **Constructive questioning** for clarification\n- **Positive engagement** even if brief\n- **Neutral inquiries** about logistics\n- **Friend consultation** requests\n- **Comparison seeking** for better understanding\n\n### ✅ **Tone Indicators to ALLOW:**\n- **Respectful questioning**: \"Janaben please\"\n- **Polite uncertainty**: \"Confuse hoye achi\"\n- **Humble admission**: \"Ami bujhi na\"\n- **Genuine interest**: \"Details janabo\"\n- **Friendly approach**: \"Bhai/apu help koren\"\n\n### ✅ **Language Patterns to ALLOW:**\n- Questions ending with \"?\" (genuine inquiry)\n- \"Please\" / \"Janaben\" / \"Help\" (respectful requests)\n- \"Interested but...\" (showing genuine consideration)\n- \"Friend bollo...\" (social validation seeking)\n- \"Ki mone koren?\" (opinion seeking)\n\n## 🚨 **Critical Decision Framework:**\n\n**ALWAYS ASK: Is this comment:**\n- ✅ Seeking information to make a decision?\n- ✅ Expressing personal doubt without discouraging others?\n- ✅ Asking for help or guidance?\n- ✅ Showing genuine interest despite concerns?\n- ✅ Neutral or positive in overall impact?\n- ✅ Constructive even if critical?\n\n**If YES to any → DO NOT FLAG**\n\n## 🎯 **Special Cases to ALWAYS ALLOW:**\n\n### 🤷 **Confused but Not Negative**\n- \"Bujhte parchi na exactly ki hobe\"\n- \"Kivabe start korbo jani na\"\n- \"Process ta clear na\"\n\n### 😊 **Positive but Cautious**\n- \"Interesting mone hocche, but sure na\"\n- \"Bhalo lagche, kintu consider korchi\"\n- \"Tempting offer, think korbo\"\n\n### 💭 **Personal Sharing (Neutral)**\n- \"Amar situation complicated\"\n- \"Time management e struggle kori\"\n- \"Budget er moddhe rakhte hobe\"\n\n---\n\n## 🌐 **Multi-Language Processing for ALLOWED Comments:**\n\nThis classifier should recognize **constructive intent** in **ALL languages** including:\n- **English, Bangla, Banglish, Hindi, Urdu**\n- **Mixed language expressions**\n- **Cultural variations** of polite inquiry\n- **Regional expressions** of genuine interest\n\n---\n\n**🎯 Core Principle**: When in doubt, **ALLOW the comment**. It's better to let a borderline comment through than to suppress genuine customer engagement. Only flag comments that clearly damage brand credibility or discourage others."
+            },
+            {
+              "category": "FLAG for review/deletion",
+              "description": "=# 🚫 Flagged Comments (For Deletion or Review)\n\n**Primary Intent**: Flag comments that damage brand credibility, create negative perception, or discourage potential customers - regardless of language (Bangla, Banglish, or English). Focus on **tone, intent, and impact** rather than specific keywords.\n\n## Core Flagging Criteria:\n\n### 🎯 **Intent-Based Detection**\nFlag comments that demonstrate these harmful intentions:\n\n**🔴 Credibility Damage**\n- Comments that question company legitimacy or trustworthiness\n- Suggestions of fraudulent practices or deception\n- Spreading doubt about course quality or effectiveness\n- Creating perception of unprofessional service\n\n**🔴 Discouragement & Deterrence**\n- Messages that actively discourage others from purchasing\n- Sharing negative experiences in a way that creates fear\n- Implying wasted money or poor investment\n- Suggesting competitors or alternatives dismissively\n\n**🔴 Public Complaint Amplification**\n- Complaints shared publicly instead of through proper support channels\n- Venting frustrations in a way that creates negative social proof\n- Making support issues seem systematic or widespread\n- Demanding immediate public responses to private issues\n\n**🔴 Mockery & Ridicule**\n- Sarcastic tone about course promises or outcomes\n- Making jokes at expense of brand, trainers, or content\n- Using dismissive language about learning methodology\n- Employing mocking emojis or expressions\n\n**🔴 Authority Undermining**\n- Questioning trainer expertise or qualifications\n- Attacking staff competence or professionalism\n- Suggesting better alternatives exist elsewhere\n- Implying inadequate knowledge transfer\n\n## 🎯 **Behavioral Patterns to Flag:**\n\n- **Impatience presented as systemic failure** (e.g., \"Still haven't received access\" → implies poor service)\n- **Personal disappointment framed as universal truth** (e.g., \"Didn't understand anything\" → suggests course is bad for everyone)\n- **Support requests with negative undertones** (e.g., \"Is this a scam?\" embedded in legitimate questions)\n- **Comparative complaints** (e.g., \"Friend took course and learned nothing\")\n- **Emotional manipulation** (e.g., \"Wasted my money\", \"Feeling cheated\")\n\n## ⚡ **Classification Logic:**\n\n**Flag if comment contains:**\n1. **Negative sentiment** + **Public visibility intent**\n2. **Criticism** + **Lack of constructive solution**\n3. **Personal experience** + **Generalized conclusion**\n4. **Support issue** + **Accusatory tone**\n5. **Skepticism** + **Discouragement of others**\n\n## 🎯 **Key Emotional Triggers to Detect:**\n- Expressions of regret about purchase decisions\n- Feelings of being misled or deceived\n- Frustration with response times or service\n- Disappointment with learning outcomes\n- Skepticism about course promises\n- Comparisons that diminish brand value\n\n## 📋 **Decision Framework:**\n**Ask: Would this comment make a potential customer:**\n- ❌ Hesitate to purchase?\n- ❌ Question our credibility?\n- ❌ Feel the brand is unprofessional?\n- ❌ Believe they might waste their money?\n- ❌ Think support is inadequate?\n\n**If YES to any → FLAG for review/deletion**\n\n## 🌐 **Multi-Language Processing Capability:**\n\nThis classifier is designed to process and flag harmful comments in **ALL languages**, including but not limited to:\n- **English** (native and non-native variations)\n- **Bangla/Bengali** (বাংলা)\n- **Banglish** (Bangla written in English script)\n- **Hindi** (हिंदी)\n- **Urdu** (اردو)\n- **Mixed language comments** (code-switching between languages)\n- **Transliterated text** (any language written in Latin script)\n- **Regional dialects and variations**\n\nThe AI model should detect negative intent and harmful patterns regardless of:\n- Language used\n- Script/alphabet\n- Spelling variations or typos\n- Regional expressions\n- Cultural context variations\n- Mixed language usage within single comments\n\n---\n\n*Note: Focus on protecting brand reputation and customer confidence while maintaining authentic community engagement. The goal is to prevent comments that create negative social proof or damage trust, regardless of their specific phrasing, language, or cultural expression.*"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        1168
+      ],
+      "id": "8a17fb00-a4c3-404e-a044-72ce4df89ce4",
+      "name": "Text Classifier",
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments[0].type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b6068a3d-ed39-44f8-8bc2-59a388e26e6d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "IMAGE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b1be2de5-31d0-414b-ac39-ec8393c139eb",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e2b510c0-aece-4a5f-ab9d-2cf30716f834",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments[0].type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -800,
+        176
+      ],
+      "id": "232c920e-bf04-4b9b-a20f-4fe973bf7b1b",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAJmwi0EYVwBPamC0xHz7a8FXKSFlqveY5zjCZBQQoZCmKAZB3UfOjdbwvQpphySXGZCzG27MaigcLRm0SeHmVA6ga7OPMAcPFXqmcgfhZBADaTSrm2bncnSozLCBZAZA2ULtI5Xt5a7LrZC3n85IZCmLqbgU9Ih0HgyHUODdIUKkpd7b82RakjR0x8zIUBdHXsXeP8zFtlI7IveZBiiPiXRPcXZBHq9QZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"29684667294514812\"\n  },\n  \"message\": {\n    \"text\": \"✅ আমি এই কমেন্টটি অনুমোদন করেছি COMMENT : {{ $json.body.entry[0].changes[0].value.message }} \"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        992,
+        1040
+      ],
+      "id": "05638fbd-614b-4518-a936-6022edea7b17",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"29684667294514812\"\n  },\n  \"message\": {\n    \"text\": {{ JSON.stringify(`❌ আমি এই কমেন্টটা বান (block) করেছি।\\n\\nname: Azha Ashiq\\n\\n📩 মেসেজ: \"বোকা*দা।\\n\\nপ্রতি প্রোযেক্ট করলে ২৫০-৫০০$. আপনি নিযে না করে ১৫০০ টাকার কোর্স বিক্রি করতে আসছেন।\"`) }}\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1216,
+        1264
+      ],
+      "id": "faf52b0b-570b-4d66-aed5-8eac0f71b63b",
+      "name": "SEND NOTI",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Respond to Webhook1').item.json.body.entry[0].changes[0].value.comment_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        992,
+        1264
+      ],
+      "id": "0d4deaf0-10d6-4cfc-a21d-5951ed901ce2",
+      "name": "DEL TRY",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"29684667294514812\"\n  },\n  \"message\": {\n    \"text\": \"🗑️ আমি এই কমেন্টটা ডিলেট করে দিয়েছি।\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1888,
+        1120
+      ],
+      "id": "16d104c1-944c-4100-bdd3-c6f5591b8f8d",
+      "name": "NOTI"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "88c05761-bfd6-4586-a254-477761e6cc92",
+              "leftValue": "={{ $json.body.entry[0].changes[0].value.item }}",
+              "rightValue": "comment",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "e83ec797-c19e-4dd8-b542-1902f15a6751",
+              "leftValue": "={{ $json.body.entry[0].changes[0].value.verb }}",
+              "rightValue": "remove",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        1152
+      ],
+      "id": "04f4f6bb-8508-4a8f-b5da-53fd26d25ba5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "=What's in this image? respond with must user sended this image that contains these magor details and these also",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        224,
+        -96
+      ],
+      "id": "4059d58a-70f6-463c-8ca1-ff8b3687f986",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "mU9jw0cA4kfPoCK1",
+          "name": "OpenAi account 2150"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        240,
+        448
+      ],
+      "id": "ec2092fc-b651-428e-8f01-93c7bb96ecc7",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "openAiApi": {
+          "id": "mU9jw0cA4kfPoCK1",
+          "name": "OpenAi account 2150"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.entry[0].messaging[0].message.attachments[0].payload.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        -96
+      ],
+      "id": "16b37ca8-ea74-4309-9e30-a5ecea260283",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.entry[0].messaging[0].message.attachments[0].payload.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        448
+      ],
+      "id": "1fe9319d-bf87-4063-9862-9c8d0cc00b64",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Respond to Webhook1').item.json.body.entry[0].messaging[0].sender.id }}",
+        "collectionName": "openrouyter",
+        "databaseName": "test",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        416
+      ],
+      "id": "79ad28ac-9588-4185-b69f-db4386604659",
+      "name": "MongoDB Chat Memory"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v23.0/653007177895400/blocked",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer "
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $json.data.userId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1888,
+        1360
+      ],
+      "id": "736bbdc2-5857-47fe-9933-b1660d482662",
+      "name": "block user"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"29684667294514812\"\n  },\n  \"message\": {\n    \"text\": \"I BLOCKED THAT MF\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2096,
+        1264
+      ],
+      "id": "c3cdc103-0b82-4887-93bf-0022af960627",
+      "name": "SEND NOTI1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "options": {
+          "responseFormat": "json_object"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        1344
+      ],
+      "id": "512b950f-aa56-400a-ad15-d43cc7ffafde",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ojpbxfeerhcrcmhmktab.supabase.co/functions/v1/initial",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qcGJ4ZmVlcmhjcmNtaG1rdGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNzQxNzcsImV4cCI6MjA3MDg1MDE3N30.APuEvGxTNKWhWniDoAGFHT-cMyl5PxW41JwGt6pMius"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $json.body.entry[0].messaging[0].sender.id }}"
+            },
+            {
+              "name": "userMode",
+              "value": "#AI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -176,
+        192
+      ],
+      "id": "2c9253dc-03b0-4356-aa65-9bfdc30b544d",
+      "name": "HTTP Request4",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "toolDescription": "WHEN USER SAID OR NEED TO TRANSFER THEIR CHAT. CALL IT ONE TIME.\nSO THEIR CHAT WILLBE TRANSFERD AND YOU NO LONGER WILL RECIVE THOSE MESAGES.",
+        "method": "POST",
+        "url": "https://ojpbxfeerhcrcmhmktab.supabase.co/functions/v1/change",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qcGJ4ZmVlcmhjcmNtaG1rdGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNzQxNzcsImV4cCI6MjA3MDg1MDE3N30.APuEvGxTNKWhWniDoAGFHT-cMyl5PxW41JwGt6pMius"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $('Edit Fields').item.json.body.entry[0].messaging[0].sender.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1696,
+        416
+      ],
+      "id": "690cfb9e-6a4e-4787-8d22-6514df332f07",
+      "name": "chat transfer protocol"
+    },
+    {
+      "parameters": {
+        "url": "https://ojpbxfeerhcrcmhmktab.supabase.co/functions/v1/check",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $('Edit Fields').item.json.body.entry[0].messaging[0].sender.id }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qcGJ4ZmVlcmhjcmNtaG1rdGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNzQxNzcsImV4cCI6MjA3MDg1MDE3N30.APuEvGxTNKWhWniDoAGFHT-cMyl5PxW41JwGt6pMius"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        192
+      ],
+      "id": "e2f95be9-02b7-4a02-b40b-02a30793699e",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.userMode }}",
+                    "rightValue": "#AI",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3d938353-a75a-4a62-b4a1-d07ec9611b75"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AI"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f0914329-f230-487b-b74e-bfa7ea28a0a7",
+                    "leftValue": "={{ $json.data.userMode }}",
+                    "rightValue": "#HUMAN",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HUMAN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        192
+      ],
+      "id": "f3c67541-00a1-4374-8974-e80733d39930",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "toolDescription": "=CALL THIS AFTER YOU TRANSFERD AN CHAT TO ADMIN THIS IS MUST. IF YOU DONT CALL THIS ADMIN CANT SEE THE CHAT IS TRANSFERED OR NOT\n\nor sometimes if needs to notify something about the user.",
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"recipient\": {\n    \"id\": \"29684667294514812\"\n  },\n  \"message\": {\n    \"text\": \"I TRANSFERRED A CHAT TO YOU\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1872,
+        416
+      ],
+      "id": "5f20e01e-1572-476b-97a8-c5633c9c86bb",
+      "name": "ADMIN NOTIFICATION AFTER CHAT TRANSFER"
+    },
+    {
+      "parameters": {
+        "description": "=Use the tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        2032,
+        432
+      ],
+      "id": "20f592f3-0a44-46e7-94ae-b62d1ce85acf",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aaa36695-e6de-4762-ab7e-4813e773513f",
+              "leftValue": "={{ $json.data.count }}",
+              "rightValue": 2,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        1264
+      ],
+      "id": "7dc80e0f-e304-47c0-8187-316a73d332e8",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer "
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Respond to Webhook1').item.json.body.entry[0].messaging[0].sender.id }}\"\n  },\n  \"sender_action\": \"typing_on\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -800,
+        -16
+      ],
+      "id": "d0576136-9e38-4f04-a1b5-9b138bc6e396",
+      "name": "typing"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ojpbxfeerhcrcmhmktab.supabase.co/functions/v1/cycle",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qcGJ4ZmVlcmhjcmNtaG1rdGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNzQxNzcsImV4cCI6MjA3MDg1MDE3N30.APuEvGxTNKWhWniDoAGFHT-cMyl5PxW41JwGt6pMius"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $('Respond to Webhook1').item.json.body.entry[0].changes[0].value.from.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1456,
+        1264
+      ],
+      "id": "d8950cdc-6601-4c16-8f89-dfd527af8bb3",
+      "name": "HTTP Request6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ojpbxfeerhcrcmhmktab.supabase.co/functions/v1/cycle",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qcGJ4ZmVlcmhjcmNtaG1rdGFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNzQxNzcsImV4cCI6MjA3MDg1MDE3N30.APuEvGxTNKWhWniDoAGFHT-cMyl5PxW41JwGt6pMius"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $('Respond to Webhook1').item.json.body.entry[0].changes[0].value.from.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1408,
+        2016
+      ],
+      "id": "f0e1baa9-c8dd-4520-97e4-ee5cc2a64dbc",
+      "name": "HTTP Request7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"29684667294514812\"\n  },\n  \"message\": {\n    \"text\": \"SOMEONE DID HAHA\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1808,
+        1888
+      ],
+      "id": "1d49d10e-d07a-4822-bac1-d7b3cca83fe6",
+      "name": "NOTI1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v23.0/653007177895400/blocked",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer EAAJmwi0EYVwBPamC0xHz7a8FXKSFlqveY5zjCZBQQoZCmKAZB3UfOjdbwvQpphySXGZCzG27MaigcLRm0SeHmVA6ga7OPMAcPFXqmcgfhZBADaTSrm2bncnSozLCBZAZA2ULtI5Xt5a7LrZC3n85IZCmLqbgU9Ih0HgyHUODdIUKkpd7b82RakjR0x8zIUBdHXsXeP8zFtlI7IveZBiiPiXRPcXZBHq9QZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $('Respond to Webhook1').item.json.body.entry[0].changes[0].value.from.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1808,
+        2144
+      ],
+      "id": "cb0e4a22-3094-4da7-922a-288b082f45a5",
+      "name": "block user1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"29684667294514812\"\n  },\n  \"message\": {\n    \"text\": \"I BLOCKED THAT MF\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        2144
+      ],
+      "id": "d9f6ded2-8d6f-4282-b788-307cbd2dacd9",
+      "name": "SEND NOTI2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aaa36695-e6de-4762-ab7e-4813e773513f",
+              "leftValue": "={{ $json.data.count }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1616,
+        2016
+      ],
+      "id": "ed92689b-265b-475d-bc91-8ff61a1c1237",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d55d125b-2999-4d02-a207-280aa96f0ec0",
+              "leftValue": "={{ $json.body.entry[0].changes[0].value.from.id }}",
+              "rightValue": "29684667294514812",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        1984
+      ],
+      "id": "cc9668aa-7cac-485d-baa3-bd05e7dac946",
+      "name": "IS ADMIN"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a4a50081-5808-4d5d-906e-474111585075",
+              "leftValue": "={{ $json.body.entry[0].changes[0].value.verb }}",
+              "rightValue": "remove",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        2000
+      ],
+      "id": "1e8b569a-42c4-49b3-a9c9-03c5cf977f44",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d55d125b-2999-4d02-a207-280aa96f0ec0",
+              "leftValue": "={{ $json.body.entry[0].changes[0].value.from.id }}",
+              "rightValue": "29684667294514812",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -480,
+        2144
+      ],
+      "id": "6227ce1b-650a-4523-826f-be2718a2aff4",
+      "name": "IS ADMIN1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"29684667294514812\"\n  },\n  \"message\": {\n    \"text\": \"i blocked who did angry\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        304,
+        2176
+      ],
+      "id": "ccfafc8d-7021-4fcb-9708-8208cb6db5ee",
+      "name": "NOTI2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v23.0/653007177895400/blocked",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer "
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $('Respond to Webhook1').item.json.body.entry[0].changes[0].value.from.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        2176
+      ],
+      "id": "b80ff084-3199-4247-ac8a-9e9f6f189799",
+      "name": "block user2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a34488e2-8aca-4b86-a72f-7671d0633666",
+              "leftValue": "={{ $json.body.entry[0].changes[0].value.verb }}",
+              "rightValue": "remove",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        2160
+      ],
+      "id": "198511da-0a7c-4156-8b8c-63d261c02cb7",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/me/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Respond to Webhook1').item.json.body.entry[0].messaging[0].sender.id }}\"\n  },\n  \"message\": {\n    \"text\": {{ JSON.stringify($json.output) }}\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2032,
+        176
+      ],
+      "id": "0b2b5a7d-28d2-4324-b9bd-f70a780f227d",
+      "name": "MESSENGER"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        816,
+        416
+      ],
+      "id": "de6aea2c-c130-4f60-96bc-b4e6c1c10ee6",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        416
+      ],
+      "id": "e2b6b1f2-b6fc-4a0d-b1c5-81778e3c5c8e",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2BtFOkrdS6CN6TfS",
+          "name": "Google Gemini(PaLM) Api account 485"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## AI/HUMAN Status Provider \nGives every user an AI mode initially to talk with AI\nApi link : https://api-service-applicat-dapp.bolt.host/",
+        "height": 256,
+        "width": 960
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        96
+      ],
+      "id": "07b092b1-2678-4786-be59-d69a1f3acafa",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "MESSENGER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEARCH KNOWLADGEBASE": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "SEARCH KNOWLADGEBASE",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "typing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IS ADMIN",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IS ADMIN1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DEL TRY",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEND NOTI": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DEL TRY": {
+      "main": [
+        [
+          {
+            "node": "SEND NOTI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "block user": {
+      "main": [
+        [
+          {
+            "node": "SEND NOTI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chat transfer protocol": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ADMIN NOTIFICATION AFTER CHAT TRANSFER": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "NOTI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "block user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request6": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "block user1": {
+      "main": [
+        [
+          {
+            "node": "SEND NOTI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "NOTI1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "block user1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request7": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IS ADMIN": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IS ADMIN1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "block user2": {
+      "main": [
+        [
+          {
+            "node": "NOTI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [],
+        [
+          {
+            "node": "block user2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9340f613-ef51-4898-b26e-17d805054323",
+  "meta": {
+    "instanceId": "8aa7a6b00703250dcbefcb510baac06d8bd02203b4f9c49a6f275db8e3adde34"
+  },
+  "id": "MUUk1Q7hVh2ujeiX",
+  "tags": []
+}
